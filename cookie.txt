@@ -1,0 +1,2 @@
+#LWP-Cookies-2.0
+Set-Cookie3: ASP.NET_SessionId=z1ei2tl0onks3icbzxbfkfsu; path="/"; domain="xk.shu.edu.cn"; path_spec; discard; HttpOnly=None; version=0
