@@ -4,12 +4,9 @@ import os
 import os.path
 from PIL import Image
 from svmutil import *
-
-
-org_validate_img = r'C:\Users\digge\Desktop\validate code\test.jpg'
+import threading
+import time
 model_dir = r'C:\Users\digge\Desktop\model'
-data_dir = 'C:\\Users\\digge\\Desktop\\validate code\\'
-
 def check(img,x,y):
     if (x < 0 or y < 0 or x > img.size[0] - 1 or y > img.size[1] - 1):
         return True
@@ -43,11 +40,11 @@ def split_image(img):
     for i in range(4):
         image_list.append(img.crop(box[i]))
     return image_list
-def image_to_data(img,data_file):
+def image_to_data(img):
     label = 318
     SN = 0
     pixel = img.load()
-    data_file.write(str(label)+' ')
+    data_dict = {}
     point = 0
     for  x in range(img.size[0]):
             point_x = 0
@@ -56,8 +53,7 @@ def image_to_data(img,data_file):
                     point = point+1
                     point_x = point_x+1
             SN = SN+1
-            data_file.write(str(SN)+':')
-            data_file.write(str(point_x)+' ')
+            data_dict[SN] = point_x
     #计算每一行的点数
     for  y in range(img.size[1]):
         point_y = 0
@@ -65,35 +61,38 @@ def image_to_data(img,data_file):
             if pixel[x,y] < 127:
                 point_y = point_y+1
         SN = SN+1
-        data_file.write(str(SN)+':')
-        data_file.write(str(point_y)+' ')
+        data_dict[SN] = point_y
     #总点数 
     SN = SN+1
-    data_file.write(str(SN)+':')
-    data_file.write(str(point))
-    data_file.write("\n")
-    data_file.close()
-    return None
+    data_dict[SN] = point
+    return [318],[data_dict]
 
-def hyper_classifer(model_dir,data_file):
-    files = os.listdir(model_dir)
-    os.chdir(model_dir)
-    tlabel,tdata = svm_read_problem(data_file)
+def hyper_classifer(model_dict,train_data):
     score = [0]*256
-    for file in files:
-        model = svm_load_model(file)
-        p_label,p_acc, p_val = svm_predict(tlabel,tdata,model,'-q')
+    tlabel = train_data[0]
+    tdata = train_data[1]
+    for model_name in model_dict:
+        p_label,p_acc, p_val = svm_predict(tlabel,tdata,model_dict[model_name],'-q')
         if int(p_label[0]) == 0:
-            score[int(str(file).strip('.model').split('_')[0])] += 1
+            score[int(model_name.split('_')[0])] += 1
         if int(p_label[0]) == 1:
-            score[int(str(file).strip('.model').split('_')[1])] += 1
-    os.remove(data_file)
+            score[int(model_name.split('_')[1])] += 1
     return chr(score.index(max(score)))
 
-img = Image.open(org_validate_img)
-img = binaryzation(img)
-img_list = split_image(img)
-for i in range(4):
-    data_file = data_dir + str(i)
-    image_to_data(img_list[i],open(data_file,'w'))
-    print hyper_classifer(model_dir,data_file),
+def CHPTCHA_interface(org_validate_img,model_dict):
+    img = Image.open(org_validate_img)
+    img = binaryzation(img)
+    img_list = split_image(img)
+    validate_code = ''
+    for i in xrange(4):
+        start = time.time()
+        validate_code = validate_code + hyper_classifer(model_dict,image_to_data(img_list[i]))
+        print time.time() - start
+    return validate_code
+
+files = os.listdir(model_dir)
+model_dict = {}
+for file in files:
+    temp_model = svm_load_model(model_dir+'\\'+file)
+    model_dict[str(file).strip('.model')] = temp_model
+print CHPTCHA_interface('C:\\Users\\digge\\Desktop\\validate code\\test.jpg',model_dict)
