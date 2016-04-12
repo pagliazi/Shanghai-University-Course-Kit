@@ -7,6 +7,7 @@ import re
 import time
 import webbrowser
 import zlib
+from Auto_CHPTCHA import *
 username = '12345'
 psw = '12345'
 class Shu:
@@ -57,20 +58,17 @@ class Shu:
         request = urllib2.Request(self.IndexUrl,Indexbody)
         response=self.opener.open(request)
         content=response.read()
-        print (content)
         return content
-        print (status)
     def getIdenCode(self):
         pic=urllib2.Request(self.CodeUrl,self.Getheader)
         return pic
     def main(self):
-        print (u"您需要手动输入验证码")
         self.opener.open('http://xk.shu.edu.cn:8080/')
         self.cookie.save(ignore_discard=True, ignore_expires=True)
         cookie=open('cookie.txt').read()
         print cookie
         pattern= re.compile('ASP.NET_SessionId=(........................);*?')
-        self.SessionId= re.search(pattern,cookie).group(1)
+        self.SessionId = re.search(pattern,cookie).group(1)
         self.get ={
             'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Encoding':'gzip, deflate, sdch',
@@ -88,11 +86,18 @@ class Shu:
         local = open('Code.jpg', 'wb')
         local.write(img.read())
         local.close()
-        #code= AutoCode ('Code.jpg')#这里用了一个待开发的函数
-        code=raw_input()
+        code = Auto_CHPTCHA('Code.jpg')
         self.IndexBody['txtValiCode']=str(code)
-        self.login()
+        content = self.login()
+        return content
 #username = raw_input('学号：')
 #psw =raw_input('密码：')
+username = '15124550'
+psw = 'Nbanba5636'
 shu=Shu(username,psw)
-shu.main()
+content = shu.main()
+while content.find('Validate') != -1:
+    print content.find('Validate')
+    print shu.IndexBody['txtValiCode']
+    content = shu.main()
+print content

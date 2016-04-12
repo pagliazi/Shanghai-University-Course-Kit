@@ -5,7 +5,6 @@ import os.path
 from PIL import Image
 from svmutil import *
 import threading
-import time
 model_dir = r'C:\Users\digge\Desktop\model'
 def check(img,x,y):
     if (x < 0 or y < 0 or x > img.size[0] - 1 or y > img.size[1] - 1):
@@ -79,20 +78,16 @@ def hyper_classifer(model_dict,train_data):
             score[int(model_name.split('_')[1])] += 1
     return chr(score.index(max(score)))
 
-def CHPTCHA_interface(org_validate_img,model_dict):
+def Auto_CHPTCHA(org_validate_img):
+    files = os.listdir(model_dir)
+    model_dict = {}
+    for file in files:
+        temp_model = svm_load_model(model_dir+'\\'+file)
+        model_dict[str(file).strip('.model')] = temp_model
     img = Image.open(org_validate_img)
     img = binaryzation(img)
     img_list = split_image(img)
     validate_code = ''
     for i in xrange(4):
-        start = time.time()
         validate_code = validate_code + hyper_classifer(model_dict,image_to_data(img_list[i]))
-        print time.time() - start
     return validate_code
-
-files = os.listdir(model_dir)
-model_dict = {}
-for file in files:
-    temp_model = svm_load_model(model_dir+'\\'+file)
-    model_dict[str(file).strip('.model')] = temp_model
-print CHPTCHA_interface('C:\\Users\\digge\\Desktop\\validate code\\test.jpg',model_dict)
