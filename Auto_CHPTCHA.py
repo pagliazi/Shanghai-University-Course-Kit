@@ -78,12 +78,8 @@ def hyper_classifer(model_dict,train_data):
             score[int(model_name.split('_')[1])] += 1
     return chr(score.index(max(score)))
 
-def Auto_CHPTCHA(org_validate_img):
+def Auto_CHPTCHA(org_validate_img, model_dict):
     files = os.listdir(model_dir)
-    model_dict = {}
-    for file in files:
-        temp_model = svm_load_model(model_dir+'\\'+file)
-        model_dict[str(file).strip('.model')] = temp_model
     img = Image.open(org_validate_img)
     img = binaryzation(img)
     img_list = split_image(img)
@@ -91,3 +87,6 @@ def Auto_CHPTCHA(org_validate_img):
     for i in xrange(4):
         validate_code = validate_code + hyper_classifer(model_dict,image_to_data(img_list[i]))
     return validate_code
+
+
+    
