@@ -7,7 +7,7 @@ import time
 import webbrowser
 import zlib
 from Auto_CHPTCHA import *
-
+from pass_input import *
 class sim_client:
     def __init__(self, username, password, model_dict):
         self.model_dict = model_dict
@@ -26,9 +26,9 @@ class sim_client:
         temp_file.close()
         validate_code = Auto_CHPTCHA('temp_code.jpg',model_dict)
         self.IndexBody['txtValiCode'] = str(validate_code)
-        content = self.login()
+        content = self.__login()
         return content
-    def login(self):
+    def __login(self):
         Indexbody = urllib.urlencode(self.IndexBody)
         request = urllib2.Request(self.IndexUrl,Indexbody)
         response = self.opener.open(request)
@@ -40,6 +40,7 @@ def client_login(username, password , model_dcit):
     content = client.run()
     while content.find('Validate') != -1:
         content = client.run()
+    print 'login success\n'
     return client
 #for course inquire, the parameter is class name. for course selection,it's the list of class
 def request_constructor(username, request_type, parameter):
@@ -63,7 +64,7 @@ def course_attack(username, password, model_dcit, class_list, idle_time = 2, res
     embark = time.time()
     while flag:
         reponse = client.opener.open(request).read()
-        print reponse
+        #print reponse.decode('utf8')
         if len(re.findall('已选此课程', reponse)) == len(class_list):
             print 'check'
             flag = True
@@ -112,7 +113,7 @@ for file in files:
 
 #get input
 username = raw_input('enter student id:')
-password = raw_input('enter passphrase:')
+password = pwd_input('enter passphrase:')
 class_number = input('enter the number of class:')
 class_list = [{'classid' : '', 'teacherid' : ''} for i in range(class_number)]
 
